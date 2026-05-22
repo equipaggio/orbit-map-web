@@ -222,17 +222,16 @@ async function caricaAreeKml(linkAree) {
                 }
             ).addTo(map);
 
+            const municipalita = trovaPrevalente(area.punti, municipalitaLayer);
+            const prefettura = trovaPrevalente(area.punti, prefettureLayer);
+
             polygon.bindPopup(
-                "<b>"
-                +
-                area.nome
-                +
-                "</b><br><br>"
-                +
-                area.descrizione.replaceAll(
-                    "\n",
-                    "<br>"
-                )
+                "<b>" + area.nome + "</b><br><br>" +
+                "Municipalità: " + municipalita + "<br>" +
+                "Prefettura: " + prefettura + "<br>" +
+                "Quota min (in ft): da calcolare<br>" +
+                "Quota max (in ft): da calcolare<br><br>" +
+                area.descrizione.replaceAll("\n", "<br>")
             );
 
             polygon.bindTooltip(
@@ -492,10 +491,7 @@ async function caricaMunicipalita() {
             )
         ).text();
 
-    municipalitaLayer =
-        parseKmlPoligoni(
-            testo
-        );
+    municipalitaLayer = parseKmlPoligoni(testo, "municipalita");
 }
 
 async function caricaPrefetture() {
@@ -514,44 +510,136 @@ async function caricaPrefetture() {
             )
         ).text();
 
-    prefettureLayer =
-        parseKmlPoligoni(
-            testo
-        );
+    prefettureLayer = parseKmlPoligoni(testo, "prefettura");
 }
 
-function parseKmlPoligoni(kml) {
-
-    const xml =
-        new DOMParser()
-        .parseFromString(
-            kml,
-            "text/xml"
-        );
-
-    const placemarks =
-        xml.getElementsByTagName(
-            "Placemark"
-        );
+function parseKmlPoligoni(kml, tipo) {
+    const xml = new DOMParser().parseFromString(kml, "text/xml");
+    const placemarks = xml.getElementsByTagName("Placemark");
 
     let lista = [];
 
-    for (
-        let p of placemarks
-    ) {
+    for (let p of placemarks) {
+        let nome = "N/D";
 
-        const nome =
-            p.getElementsByTagName(
-                "name"
-            )[0]
-            ?.textContent
-            ||
-            "N/D";
+        if (tipo === "municipalita") {
+            nome =
+                p.querySelector('SimpleData[name="shapeName"]')?.textContent?.trim()
+                || p.getElementsByTagName("name")[0]?.textContent?.trim()
+                || "Municipalità";
+        }
 
-        lista.push({
-            nome:nome
-        });
+        if (tipo === "prefettura") {
+            nome =
+                p.querySelector('SimpleData[name="ADM1_EN"]')?.textContent?.trim()
+                || p.getElementsByTagName("name")[0]?.textContent?.trim()
+                || "Prefettura";
+        }
+
+        const coordNodes = p.getElementsByTagName("coordinates");
+
+        for (let c of coordNodes) {
+            const punti = c.textContent.trim()
+                .split(/\s+/)
+                .map(function(coppia) {
+                    const parti = coppia.split(",");
+                    return {
+                        lon: parseFloat(parti[0]),
+                        lat: parseFloat(parti[1])
+                    };
+                })
+                .filter(function(pt) {
+                    return !isNaN(pt.lat) && !isNaN(pt.lon);
+                });
+
+            if (punti.length >= 3) {
+                lista.push({
+                    nome:nome,
+                    punti:punti
+                });
+            }
+        }
     }
 
     return lista;
+}
+
+function puntoDentroPoligono(punto, poligono) {
+    let dentro = false;
+    let j = poligono.length - 1;
+
+    for (let i = 0; i < poligono.length; i++) {
+        const pi = poligono[i];
+        const pj = poligono[j];
+
+        const interseca =
+            ((pi.lat > punto.lat) !== (pj.lat > punto.lat)) &&
+            (punto.lon <
+                (pj.lon - pi.lon) *
+                (punto.lat - pi.lat) /
+                (pj.lat - pi.lat) +
+                pi.lon);
+
+        if (interseca) {
+            dentro = !dentro;
+        }
+
+        j = i;
+    }
+
+    return dentro;
+}
+
+function trovaPrevalente(puntiArea, listaPoligoni) {
+    if (!puntiArea || puntiArea.length < 3) {
+        return "Non trovata";
+    }
+
+    const minLat = Math.min(...puntiArea.map(p => p.lat));
+    const maxLat = Math.max(...puntiArea.map(p => p.lat));
+    const minLon = Math.min(...puntiArea.map(p => p.lon));
+    const maxLon = Math.max(...puntiArea.map(p => p.lon));
+
+    const righe = 20;
+    const colonne = 20;
+
+    const passoLat = (maxLat - minLat) / righe;
+    const passoLon = (maxLon - minLon) / colonne;
+
+    const conteggio = {};
+
+    if (passoLat === 0 || passoLon === 0) {
+        return "Non trovata";
+    }
+
+    for (let r = 0; r < righe; r++) {
+        for (let c = 0; c < colonne; c++) {
+            const punto = {
+                lat:minLat + passoLat * (r + 0.5),
+                lon:minLon + passoLon * (c + 0.5)
+            };
+
+            if (!puntoDentroPoligono(punto, puntiArea)) {
+                continue;
+            }
+
+            listaPoligoni.forEach(function(poly) {
+                if (puntoDentroPoligono(punto, poly.punti)) {
+                    conteggio[poly.nome] = (conteggio[poly.nome] || 0) + 1;
+                }
+            });
+        }
+    }
+
+    let migliore = "Non trovata";
+    let max = 0;
+
+    Object.keys(conteggio).forEach(function(nome) {
+        if (conteggio[nome] > max) {
+            max = conteggio[nome];
+            migliore = nome;
+        }
+    });
+
+    return migliore;
 }
