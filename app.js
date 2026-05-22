@@ -207,21 +207,64 @@ async function caricaAreeKml(linkAree) {
                 return [p.lat, p.lon];
             });
 
-            const polygon = L.polygon(punti, {
-                color: area.colore,
-                fillColor: area.colore,
-                fillOpacity: 0.25,
-                weight: 3
-            }).addTo(map);
+            const polygon = L.polygon(
+                punti,
+                {
+                    color: area.colore,
+                    fillColor: area.colore,
+                    fillOpacity:0.25,
+                    weight:3
+                }
+            ).addTo(map);
 
             polygon.bindPopup(
-                "<b>" + area.nome + "</b><br><br>" +
-                area.descrizione.replaceAll("\n", "<br>")
+                "<b>"
+                +
+                area.nome
+                +
+                "</b><br><br>"
+                +
+                area.descrizione.replaceAll(
+                    "\n",
+                    "<br>"
+                )
             );
 
-            punti.forEach(function(p) {
-                bounds.push(p);
-            });
+            const centro =
+                polygon.getBounds().getCenter();
+
+            const nomeBreve =
+                nomeBreveFP(
+                    area.nome
+                );
+
+            L.marker(
+                centro,
+                {
+                    icon:
+                    L.divIcon(
+                        {
+                            className:
+                                "fp-label",
+
+                            html:
+                                nomeBreve
+                        }
+                    )
+                }
+            ).addTo(
+                map
+            );
+
+            punti.forEach(
+                function(p) {
+
+                    bounds.push(
+                        p
+                    );
+
+                }
+            );
         });
 
         if (bounds.length > 0) {
@@ -434,3 +477,22 @@ window.addEventListener("load", function() {
         mostraSchermata("home-screen");
     };
 });
+
+function nomeBreveFP(nome) {
+
+    const match =
+        nome.match(
+            /FP\d+/i
+        );
+
+    if (
+        match
+    ) {
+
+        return match[0];
+
+    }
+
+    return nome;
+
+}

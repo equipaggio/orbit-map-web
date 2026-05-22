@@ -263,3 +263,21 @@ input{
 #license-screen.hidden{
     display:none;
 }
+
+.fp-label{
+
+    background:none;
+
+    border:none;
+
+    color:white;
+
+    font-weight:bold;
+
+    font-size:14px;
+
+    text-shadow:
+        1px 1px 2px black;
+
+    white-space:nowrap;
+}
