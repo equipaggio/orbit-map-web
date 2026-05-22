@@ -141,26 +141,57 @@ async function apriProgetto(index) {
 
 async function caricaAreeKml(linkAree) {
     try {
-        const url = convertiLinkDrive(linkAree);
+        const urlDrive =
+            convertiLinkDrive(
+                linkAree
+            );
+
+        const url =
+            "https://orbit-map-web.onrender.com/proxy?url="
+            +
+            encodeURIComponent(
+                urlDrive
+            );
 
         const risposta =
-            await fetch(url);
+            await fetch(
+                url
+            );
 
-        if (!risposta.ok) {
+        if (
+            !risposta.ok
+        ) {
+
             throw new Error(
-                "Risposta HTTP: "
-                + risposta.status
+                "HTTP "
+                +
+                risposta.status
             );
         }
 
         const testoKml =
             await risposta.text();
 
-        console.log(
-            testoKml.substring(
-                0,
-                500
+        if (
+            !testoKml.includes(
+                "<kml"
             )
+        ) {
+
+            throw new Error(
+                "KML non valido"
+            );
+        }
+
+        console.log(
+            "KML OK"
+        );
+
+        localStorage.setItem(
+            "cache_aree_"
+            +
+            linkAree,
+            testoKml
         );
         const aree = estraiElementiDaKml(testoKml);
 
