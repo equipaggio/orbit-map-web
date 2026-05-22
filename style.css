@@ -265,19 +265,11 @@ input{
 }
 
 .fp-label{
-
-    background:none;
-
+    background:transparent;
     border:none;
-
+    box-shadow:none;
     color:white;
-
     font-weight:bold;
-
     font-size:14px;
-
-    text-shadow:
-        1px 1px 2px black;
-
-    white-space:nowrap;
+    text-shadow:1px 1px 3px black;
 }

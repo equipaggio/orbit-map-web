@@ -230,30 +230,13 @@ async function caricaAreeKml(linkAree) {
                 )
             );
 
-            const centro =
-                polygon.getBounds().getCenter();
-
-            const nomeBreve =
-                nomeBreveFP(
-                    area.nome
-                );
-
-            L.marker(
-                centro,
+            polygon.bindTooltip(
+                nomeBreveFP(area.nome),
                 {
-                    icon:
-                    L.divIcon(
-                        {
-                            className:
-                                "fp-label",
-
-                            html:
-                                nomeBreve
-                        }
-                    )
+                    permanent:true,
+                    direction:"center",
+                    className:"fp-label"
                 }
-            ).addTo(
-                map
             );
 
             punti.forEach(
@@ -479,20 +462,11 @@ window.addEventListener("load", function() {
 });
 
 function nomeBreveFP(nome) {
+    const match = nome.match(/FP\s*0*([0-9]+)/i);
 
-    const match =
-        nome.match(
-            /FP\d+/i
-        );
-
-    if (
-        match
-    ) {
-
-        return match[0];
-
+    if (match) {
+        return "FP" + match[1].padStart(4, "0");
     }
 
     return nome;
-
 }
