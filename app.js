@@ -225,31 +225,31 @@ async function caricaAreeKml(linkAree) {
             const municipalita = trovaPrevalente(area.punti, municipalitaLayer);
             const prefettura = trovaPrevalente(area.punti, prefettureLayer);
 
-            const descrizioneNuova =
-                area.descrizione.replace(
-                    /Coordinate area:/i,
+            let descrizioneNuova = area.descrizione;
 
-                    "Municipalità: "
-                    + municipalita +
+            const bloccoInfo =
+                "\n\nMunicipalità: " + municipalita +
+                "\nPrefettura: " + prefettura +
+                "\nQuota min (in ft): da calcolare" +
+                "\nQuota max (in ft): da calcolare\n";
 
-                    "\n" +
-
-                    "Prefettura: "
-                    + prefettura +
-
-                    "\n" +
-
-                    "Quota min (in ft): da calcolare" +
-
-                    "\n" +
-
-                    "Quota max (in ft): da calcolare" +
-
-                    "\n\n" +
-
-                    "Coordinate area:"
+            if (descrizioneNuova.includes("Coordinate area:")) {
+                descrizioneNuova = descrizioneNuova.replace(
+                    "Coordinate area:",
+                    bloccoInfo + "\nCoordinate area:"
                 );
+            } else {
+                descrizioneNuova = descrizioneNuova + bloccoInfo;
+            }
 
+            polygon.bindPopup(
+                "<b>" + area.nome + "</b><br><br>" +
+                descrizioneNuova.replaceAll(
+                    "\n",
+                    "<br>"
+                )
+            );
+            
             polygon.bindTooltip(
                 nomeBreveFP(area.nome),
                 {
