@@ -71,21 +71,23 @@ function leggiLinkDaTxt(testo) {
     };
 }
 
-function estraiIdDrive(link) {
-    const match = link.match(/\/d\/([^/]+)/);
+function convertiLinkDrive(link) {
+
+    const regex =
+        /\/file\/d\/([^/]+)\//;
+
+    const match =
+        link.match(regex);
 
     if (match) {
-        return match[1];
-    }
 
-    return "";
-}
+        const fileId =
+            match[1];
 
-function convertiLinkDrive(link) {
-    const fileId = estraiIdDrive(link);
-
-    if (fileId) {
-        return "https://drive.usercontent.google.com/download?id=" + fileId + "&export=download";
+        return (
+            "https://drive.google.com/uc?export=download&id="
+            + fileId
+        );
     }
 
     return link;
@@ -141,37 +143,25 @@ async function caricaAreeKml(linkAree) {
     try {
         const url = convertiLinkDrive(linkAree);
 
-        let testoKml = "";
+        const risposta =
+            await fetch(url);
 
-        try {
-            const risposta = await fetch(url);
-
-            if (!risposta.ok) {
-                throw new Error("Risposta HTTP: " + risposta.status);
-            }
-
-            testoKml = await risposta.text();
-
-            if (!testoKml.includes("<kml")) {
-                throw new Error("Il file scaricato non sembra un KML");
-            }
-
-            localStorage.setItem("cache_kml_aree_" + linkAree, testoKml);
-
-            console.log("KML AREE scaricato da Drive");
-
-        } catch (erroreDownload) {
-
-            console.warn("Download Drive fallito, provo cache locale", erroreDownload);
-
-            testoKml = localStorage.getItem("cache_kml_aree_" + linkAree) || "";
-
-            if (!testoKml) {
-                throw new Error("Impossibile scaricare KML_AREE e nessuna cache locale disponibile");
-            }
-
-            console.log("KML AREE caricato da cache locale");
+        if (!risposta.ok) {
+            throw new Error(
+                "Risposta HTTP: "
+                + risposta.status
+            );
         }
+
+        const testoKml =
+            await risposta.text();
+
+        console.log(
+            testoKml.substring(
+                0,
+                500
+            )
+        );
         const aree = estraiElementiDaKml(testoKml);
 
         if (aree.length === 0) {
