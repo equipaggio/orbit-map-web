@@ -1,4 +1,7 @@
 let map = null;
+let municipalitaLayer = [];
+let prefettureLayer = [];
+
 let progettoTemporaneo = {
     aree:"",
     fp:"",
@@ -135,6 +138,8 @@ async function apriProgetto(index) {
     inizializzaMappa(progetto);
 
     setTimeout(async function() {
+        await caricaMunicipalita();
+        await caricaPrefetture();
         await caricaAreeKml(progetto.aree);
     }, 800);
 }
@@ -469,4 +474,84 @@ function nomeBreveFP(nome) {
     }
 
     return nome;
+}
+
+async function caricaMunicipalita() {
+
+    const url =
+        "https://orbit-map-web.onrender.com/proxy?url="
+        +
+        encodeURIComponent(
+            "https://equipaggio.github.io/orbit-map-web/municipalita_albania.kml"
+        );
+
+    const testo =
+        await (
+            await fetch(
+                url
+            )
+        ).text();
+
+    municipalitaLayer =
+        parseKmlPoligoni(
+            testo
+        );
+}
+
+async function caricaPrefetture() {
+
+    const url =
+        "https://orbit-map-web.onrender.com/proxy?url="
+        +
+        encodeURIComponent(
+            "https://equipaggio.github.io/orbit-map-web/prefetture_albania.kml"
+        );
+
+    const testo =
+        await (
+            await fetch(
+                url
+            )
+        ).text();
+
+    prefettureLayer =
+        parseKmlPoligoni(
+            testo
+        );
+}
+
+function parseKmlPoligoni(kml) {
+
+    const xml =
+        new DOMParser()
+        .parseFromString(
+            kml,
+            "text/xml"
+        );
+
+    const placemarks =
+        xml.getElementsByTagName(
+            "Placemark"
+        );
+
+    let lista = [];
+
+    for (
+        let p of placemarks
+    ) {
+
+        const nome =
+            p.getElementsByTagName(
+                "name"
+            )[0]
+            ?.textContent
+            ||
+            "N/D";
+
+        lista.push({
+            nome:nome
+        });
+    }
+
+    return lista;
 }
