@@ -227,30 +227,28 @@ async function caricaAreeKml(linkAree) {
 
             const descrizioneNuova =
                 area.descrizione.replace(
-                    "Coordinate area:",
+                    /Coordinate area:/i,
+
                     "Municipalità: "
                     + municipalita +
-                    "<br>" +
+
+                    "\n" +
+
                     "Prefettura: "
                     + prefettura +
-                    "<br>" +
+
+                    "\n" +
+
                     "Quota min (in ft): da calcolare" +
-                    "<br>" +
+
+                    "\n" +
+
                     "Quota max (in ft): da calcolare" +
-                    "<br><br>" +
+
+                    "\n\n" +
+
                     "Coordinate area:"
                 );
-
-            polygon.bindPopup(
-                "<b>"
-                + area.nome +
-                "</b><br><br>"
-                +
-                descrizioneNuova.replaceAll(
-                    "\n",
-                    "<br>"
-                )
-            );
 
             polygon.bindTooltip(
                 nomeBreveFP(area.nome),
