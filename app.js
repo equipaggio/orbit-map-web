@@ -410,6 +410,26 @@ async function caricaAreeKml(linkAree) {
 
                     "<hr>" +
 
+                    "<button " +
+                        "onclick='generaGpxArea(" +
+                            JSON.stringify(area.nome) +
+                            "," +
+                            JSON.stringify(area.punti) +
+                        ")' " +
+                        "style='" +
+                            "width:100%;" +
+                            "margin:10px 0 15px 0;" +
+                            "padding:12px;" +
+                            "border:none;" +
+                            "border-radius:8px;" +
+                            "background:#00aa55;" +
+                            "color:white;" +
+                            "font-size:15px;" +
+                            "cursor:pointer;" +
+                        "'>" +
+                        "SCARICA AREA IN GPX" +
+                    "</button>" +
+
                     "<h3 style='margin:10px 0;'>🌤 METEO – VENTUSKY</h3>" +
 
                     "<iframe " +
@@ -1738,4 +1758,197 @@ function avviaSplashOrbit() {
     }
 
     aggiorna();
+}
+
+function decimaleInDms(valore, tipo) {
+
+    const assoluto = Math.abs(valore);
+
+    const gradi = Math.floor(assoluto);
+
+    const minutiDecimali =
+        (assoluto - gradi) * 60;
+
+    const minuti =
+        Math.floor(minutiDecimali);
+
+    const secondi =
+        (minutiDecimali - minuti) * 60;
+
+    let direzione = "";
+
+    if (tipo === "lat") {
+        direzione = valore >= 0 ? "N" : "S";
+    } else {
+        direzione = valore >= 0 ? "E" : "W";
+    }
+
+    return (
+        gradi +
+        "° " +
+        minuti.toString().padStart(2, "0") +
+        "&apos; " +
+        secondi.toFixed(2).padStart(5, "0") +
+        "&quot; " +
+        direzione
+    );
+}
+
+
+function generaGpxArea(nomeArea, punti) {
+
+    if (!punti || punti.length === 0) {
+        alert("Coordinate area non disponibili.");
+        return;
+    }
+
+    /*
+       Nei KML il primo punto può essere ripetuto
+       anche come ultimo punto per chiudere il poligono.
+       Nel GPX non vogliamo duplicarlo.
+    */
+
+    let puntiGpx = [...punti];
+
+    if (puntiGpx.length > 1) {
+
+        const primo = puntiGpx[0];
+        const ultimo = puntiGpx[puntiGpx.length - 1];
+
+        if (
+            primo.lat === ultimo.lat &&
+            primo.lon === ultimo.lon
+        ) {
+            puntiGpx.pop();
+        }
+    }
+
+    const dataIso =
+        new Date().toISOString();
+
+    let gpx =
+`<?xml version="1.0" encoding="utf-8"?>
+<gpx version="1.1"
+ creator="ALB-Aviation-System"
+ xmlns="http://www.topografix.com/GPX/1/1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <metadata>
+    <name>${nomeArea}</name>
+    <time>${dataIso}</time>
+  </metadata>
+`;
+
+    puntiGpx.forEach(function(punto) {
+
+        const lat =
+            punto.lat.toFixed(6);
+
+        const lon =
+            punto.lon.toFixed(6);
+
+        const latDms =
+            decimaleInDms(
+                punto.lat,
+                "lat"
+            );
+
+        const lonDms =
+            decimaleInDms(
+                punto.lon,
+                "lon"
+            );
+
+        const coordinata =
+            latDms +
+            ", " +
+            lonDms;
+
+        gpx +=
+`
+  <wpt lat="${lat}" lon="${lon}">
+    <name>${coordinata}</name>
+    <cmt>${coordinata}</cmt>
+    <desc>${coordinata}</desc>
+    <sym>Waypoint</sym>
+  </wpt>
+`;
+    });
+
+    gpx +=
+`
+  <rte>
+    <name>${nomeArea}</name>
+`;
+
+    puntiGpx.forEach(function(punto) {
+
+        const lat =
+            punto.lat.toFixed(6);
+
+        const lon =
+            punto.lon.toFixed(6);
+
+        const latDms =
+            decimaleInDms(
+                punto.lat,
+                "lat"
+            );
+
+        const lonDms =
+            decimaleInDms(
+                punto.lon,
+                "lon"
+            );
+
+        const coordinata =
+            latDms +
+            ", " +
+            lonDms;
+
+        gpx +=
+`
+    <rtept lat="${lat}" lon="${lon}">
+      <name>${coordinata}</name>
+    </rtept>
+`;
+    });
+
+    gpx +=
+`
+  </rte>
+
+</gpx>`;
+
+    const blob =
+        new Blob(
+            [gpx],
+            {
+                type:
+                    "application/gpx+xml;charset=utf-8"
+            }
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const link =
+        document.createElement("a");
+
+    link.href = url;
+
+    link.download =
+        nomeArea
+            .replace(/[\\/:*?"<>|]/g, "_")
+        +
+        ".gpx";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
 }
