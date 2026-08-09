@@ -1915,6 +1915,44 @@ function generaGpxArea(nomeArea, punti) {
 `;
     });
 
+    // Ripete il primo punto alla fine della rotta
+    // per chiudere completamente l'area.
+
+    if (puntiGpx.length > 0) {
+
+        const punto = puntiGpx[0];
+
+        const lat =
+            punto.lat.toFixed(6);
+
+        const lon =
+            punto.lon.toFixed(6);
+
+        const latDms =
+            decimaleInDms(
+                punto.lat,
+                "lat"
+            );
+
+        const lonDms =
+            decimaleInDms(
+                punto.lon,
+                "lon"
+            );
+
+        const coordinata =
+            latDms +
+            ", " +
+            lonDms;
+
+        gpx +=
+    `
+        <rtept lat="${lat}" lon="${lon}">
+        <name>${coordinata}</name>
+        </rtept>
+    `;
+    }
+
     gpx +=
 `
   </rte>
