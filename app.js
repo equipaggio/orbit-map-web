@@ -64,6 +64,7 @@ function leggiLinkDaTxt(testo) {
     let linkAree = "";
     let linkFp = "";
     let linkSiti = "";
+    let linkPdfFp = "";
 
     testo.split(/\r?\n/).forEach(function(riga) {
         const parti = riga.split("=");
@@ -75,13 +76,15 @@ function leggiLinkDaTxt(testo) {
             if (chiave === "KML_AREE") linkAree = valore;
             if (chiave === "KML_FP") linkFp = valore;
             if (chiave === "KML_SITI") linkSiti = valore;
+            if (chiave === "PDF_FP") linkPdfFp = valore;
         }
     });
 
     return {
         aree: linkAree,
         fp: linkFp,
-        siti: linkSiti
+        siti: linkSiti,
+        pdfFp: linkPdfFp
     };
 }
 
@@ -757,7 +760,8 @@ window.addEventListener("load", function() {
             nome:nome,
             aree:progettoTemporaneo.aree,
             fp:progettoTemporaneo.fp,
-            siti:progettoTemporaneo.siti
+            siti:progettoTemporaneo.siti,
+            pdfFp:progettoTemporaneo.pdfFp
         });
 
         salvaProgetti(progetti);
@@ -1643,6 +1647,9 @@ function salvaModificaProgetto() {
 
         progetti[index].siti =
             links.siti;
+
+        progetti[index].pdfFp =
+            links.pdfFp;
 
         salvaProgetti(progetti);
         aggiornaListaProgetti();
