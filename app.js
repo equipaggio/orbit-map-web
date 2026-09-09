@@ -12,6 +12,8 @@ let markerRicerca = null;
 let boundsAree = null;
 let sitiLayer = [];
 
+let linkPdfFpCorrente = "";
+
 let progettoTemporaneo = {
     aree:"",
     fp:"",
@@ -110,6 +112,72 @@ function convertiLinkDrive(link) {
     return link;
 }
 
+async function apriPdfPiano(nomeArea) {
+
+    if (!linkPdfFpCorrente) {
+        alert("PDF Piano di volo non configurato per questo progetto.");
+        return;
+    }
+
+    const matchFolder =
+        linkPdfFpCorrente.match(/\/folders\/([^?\/]+)/);
+
+    if (!matchFolder) {
+        alert("Link cartella PDF non valido.");
+        return;
+    }
+
+    const folderId = matchFolder[1];
+
+    const nomePiano =
+        nomeArea
+            .replace(/\s*-\s*AREA\s*$/i, "")
+            .trim();
+
+    const appsScriptUrl =
+        "https://script.google.com/macros/s/AKfycbwz-25nSzWLUDAYXKbtDiAIICRTVfEkzlgwitAxOd6NLDw1HuZK-2FFQVH86hjLZe1yEg/exec";
+
+    const urlRicerca =
+        appsScriptUrl +
+        "?folder_id=" +
+        encodeURIComponent(folderId) +
+        "&piano=" +
+        encodeURIComponent(nomePiano);
+
+    const urlProxy =
+        "https://orbit-map-web.onrender.com/proxy?url=" +
+        encodeURIComponent(urlRicerca);
+
+    try {
+        const risposta = await fetch(urlProxy);
+
+        if (!risposta.ok) {
+            throw new Error("HTTP " + risposta.status);
+        }
+
+        const testo = await risposta.text();
+        const dati = JSON.parse(testo);
+
+        if (!dati.ok || !dati.url_pdf) {
+            alert(
+                "Piano di volo PDF non trovato per:\n" +
+                nomePiano
+            );
+            return;
+        }
+
+        window.open(dati.url_pdf, "_blank");
+
+    } catch (errore) {
+        console.error(errore);
+
+        alert(
+            "Errore apertura Piano di volo PDF:\n" +
+            errore.message
+        );
+    }
+}
+
 function inizializzaMappa(progetto) {
     mostraSchermata("map-screen");
 
@@ -148,6 +216,8 @@ function inizializzaMappa(progetto) {
 async function apriProgetto(index) {
     const progetti = caricaProgetti();
     const progetto = progetti[index];
+
+    linkPdfFpCorrente = progetto.pdfFp || "";
 
     inizializzaMappa(progetto);
 
@@ -430,6 +500,24 @@ async function caricaAreeKml(linkAree) {
                             "cursor:pointer;" +
                         "'>" +
                         "SCARICA AREA IN GPX" +
+                    "</button>" +
+
+                    "<button " +
+                        "onclick='apriPdfPiano(" +
+                            JSON.stringify(area.nome) +
+                        ")' " +
+                        "style='" +
+                            "width:100%;" +
+                            "margin:0 0 15px 0;" +
+                            "padding:12px;" +
+                            "border:none;" +
+                            "border-radius:8px;" +
+                            "background:#0066cc;" +
+                            "color:white;" +
+                            "font-size:15px;" +
+                            "cursor:pointer;" +
+                        "'>" +
+                        "SCARICA PIANO DI VOLO PDF" +
                     "</button>" +
 
                     "<h3 style='margin:10px 0;'>🌤 METEO – VENTUSKY</h3>" +
