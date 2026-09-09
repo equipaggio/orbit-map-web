@@ -1,5 +1,6 @@
-from flask import Flask, request, Response
+from flask import Flask, request, Response, jsonify
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -34,6 +35,23 @@ def proxy():
                 "Access-Control-Allow-Origin": "*"
             }
         )
+
+@app.route("/pdf-piano-test")
+def pdf_piano_test():
+    folder_id = request.args.get("folder_id", "")
+    piano = request.args.get("piano", "")
+
+    if not folder_id or not piano:
+        return jsonify({
+            "ok": False,
+            "errore": "folder_id o piano mancante"
+        }), 400
+
+    return jsonify({
+        "ok": True,
+        "folder_id": folder_id,
+        "piano": piano
+    })
 
 @app.route("/reveal-token", methods=["POST"])
 def reveal_token():
