@@ -22,7 +22,6 @@ function generaDeviceId() {
 }
 
 function mostraMappa() {
-    document.getElementById("license-screen").classList.add("hidden");
     document.getElementById("home-screen").classList.remove("hidden");
     document.getElementById("map-screen").classList.add("hidden");
 }
