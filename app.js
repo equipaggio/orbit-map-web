@@ -700,6 +700,7 @@ window.addEventListener("load", function() {
         document.getElementById("preview-aree").innerText = "Non caricato";
         document.getElementById("preview-fp").innerText = "Non caricato";
         document.getElementById("preview-siti").innerText = "Non caricato";
+        document.getElementById("preview-pdf-fp").innerText = "Non caricato";
 
         mostraSchermata("project-screen");
     };
@@ -736,6 +737,9 @@ window.addEventListener("load", function() {
 
             document.getElementById("preview-siti").innerText =
                 links.siti ? "Caricato" : "Non trovato";
+
+            document.getElementById("preview-pdf-fp").innerText =
+                links.pdfFp ? "Caricato" : "Non trovato";
         };
 
         reader.readAsText(file);
