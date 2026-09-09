@@ -1728,7 +1728,7 @@ function avviaSplashOrbit() {
             percentuale: 25
         },
         {
-            testo: "Verifica licenza...",
+            testo: "Caricamento configurazione...",
             percentuale: 55
         },
         {
