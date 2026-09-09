@@ -20,7 +20,6 @@ let progettoTemporaneo = {
 
 function mostraSchermata(id) {
 
-    document.getElementById("license-screen").classList.add("hidden");
     document.getElementById("home-screen").classList.add("hidden");
     document.getElementById("project-screen").classList.add("hidden");
     document.getElementById("manage-project-screen").classList.add("hidden");
