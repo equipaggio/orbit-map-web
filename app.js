@@ -595,6 +595,7 @@ function pulisciDescrizione(testo) {
 
 window.addEventListener("load", function() {
     avviaSplashOrbit();
+    mostraSchermata("home-screen");
 
     document.getElementById("filters-btn").onclick = function() {
         document.getElementById("filters-panel").classList.toggle("hidden");
